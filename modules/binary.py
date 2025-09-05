@@ -59,7 +59,7 @@ Args:
     
 """
 def bin_to_str(
-    bin_letters: str, 
+    bin_letters: list[bool], 
     letter_size: int = 8,
     raise_on_incomplete_char: bool = False
 ) -> str:
