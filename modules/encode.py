@@ -8,7 +8,7 @@ import numpy
 import binary
 
 class CodedImage:
-    directory: str = "./data/"
+    origin_directory: str = "./data/origin"
     coded_directory: str = "./data/coded/"
 
     def __init__(self, path: str, message: str) -> None:
@@ -25,7 +25,7 @@ class CodedImage:
     """
     def code_message_in(self, component: int) -> Image.Image:
         coded_image: Image.Image
-        with Image.open(self.directory + self.path) as image:
+        with Image.open(self.origin_directory + self.path) as image:
             # Converting image to pixels.
             pixels = numpy.array(image)
             size = (pixels.shape[0], pixels.shape[1])

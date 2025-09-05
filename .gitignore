@@ -1,2 +1,14 @@
-/data/
+
+# Images dir.
+/data/coded/*
+/data/origin/*
+
+# Virtual environemment.
 /venv/
+
+# Python cache
+**/__pycache__
+*.pyc
+
+# Doc
+!README.md
