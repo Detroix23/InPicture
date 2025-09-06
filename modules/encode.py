@@ -53,35 +53,45 @@ class Encode(image.Image):
         self.coded_image: Image.Image | None = None
 
     
-    def code_message_in(self, component: int) -> tuple[Image.Image, numpy.ndarray]:
+    def code_message_in(self, custom_component: int | None = None) -> tuple[Image.Image, numpy.ndarray]:
         """
         Modify the origin image by setting the first bit of the color component to the bit of the char string.
         Component int {0, 1, 2}.
         Returns and adds to `coded image` the treated image.
         """
+        # Colors
+        component: int
+        if custom_component is None:
+            component = self.code_component
+        else:
+            component = custom_component
+
+        # Loading image
         pixels: numpy.ndarray
         coded_image: Image.Image
+        # Converting image to pixels.
         with Image.open(self.origin_directory + self.name) as image:
-            # Converting image to pixels.
             pixels = numpy.array(image)
-            size: tuple[int, int] = (pixels.shape[0], pixels.shape[1])
+        size: tuple[int, int] = (pixels.shape[0], pixels.shape[1])
 
-            # Message to bits
-            message_bit: list[bool] = binary.str_to_bin(self.message)
+        # Message to bits
+        message_bit: list[bool] = binary.str_to_bin(self.message, 8)
+        #print(f"Bin: {message_bit[0:48]}")
 
-            # Iterating over each pyxel.
-            # About overflow: loop around.
-            count: int = 0
-            for x in range(size[0]):
-                for y in range(size[1]):
-                    if count < len(message_bit):
-                        color_bin = binary.int_to_bin(pixels[x, y][component])
-                        color_bin[-1] = message_bit[count]
-                        pixels[x, y][component] = binary.bin_to_int(color_bin)
-                        count += 1 
+        # Iterating over each pyxel.
+        # About overflow: loop around.
+        count: int = 0
+        for x in range(size[0]):
+            for y in range(size[1]):
+                if count < len(message_bit):
+                    #print(message_bit[count], end=" ")
+                    color_bin = binary.int_to_bin(pixels[x, y][component], 8)
+                    color_bin[-1] = message_bit[count]
+                    pixels[x, y, component] = binary.bin_to_int(color_bin)
+                    count += 1 
 
-            # Generating the coded image.
-            coded_image = Image.fromarray(pixels)
+        # Generating the coded image.
+        coded_image = Image.fromarray(pixels)
 
         self.coded_image = coded_image
 
@@ -160,13 +170,19 @@ if __name__ == "__main__":
     import colors
     import test_utils
 
+    print("# InPicture.")
+    print("## ENCODE.")
+
+
     ie_mario = Encode(
         "medium1.bmp", 
-        test_utils.TEXT_LONG1, 
+        test_utils.TEXT_SHORT1, 
         colors.R,
         auto_save=False,
         open_when_ready=True,
     )
+    ie_mario.code_message_in()
+    ie_mario.save_image_coded()
     
     ie_color1 = Encode(
         "message1.bmp",

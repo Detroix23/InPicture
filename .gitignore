@@ -2,6 +2,7 @@
 # Images dir.
 /data/coded/*
 /data/origin/*
+/data/decoded/*
 
 # Virtual environemment.
 /venv/

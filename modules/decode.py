@@ -5,39 +5,45 @@ Given 2 images, find the hidden string.
 import numpy
 from PIL import Image
 from pathlib import Path
+import datetime
+
 
 import image
-
+import binary
 
 class Decode(image.Image):
     def __init__(
         self, 
-        origin: str, 
-        coded: str, 
-        component: int
+        name: str,  
+        component: int,
+        character_size: int = 8
     ) -> None:
-        self.origin: str = origin
-        self.coded: str = coded
+        self.name: str = name
         self.component: int = component
-        
+        self.character_size: int = character_size
+        self.message: str = ""
 
-    def compare_images(self) -> list[bool]:
-        difference: list[bool] = []
+    def read_hidden_text(self) -> str:
+        bits: numpy.ndarray = numpy.array([], dtype=bool)
         # Open both files.
-        pixels_origin: numpy.ndarray[tuple[int, int, int]]
-        pixels_coded: numpy.ndarray[tuple[int, int, int]]
-        with Image.open(Path(self.origin_directory + self.origin)) as image_origin:
-            pixels_origin = numpy.array(image_origin)
-        with Image.open(Path(self.coded_directory + self.coded)) as image_coded:
-            pixels_coded = numpy.array(image_coded)
+        pixels: numpy.ndarray[tuple[int, int, int]]
+        with Image.open(Path(self.coded_directory + self.name)) as image:
+            pixels = numpy.array(image)
 
-        for row_origin, row_coded in zip(pixels_origin, pixels_coded):
-            for origin, coded in zip(row_origin, row_coded):
-                if origin[self.component] != coded[self.component]:
-                    print(f"diff: {origin} != {coded}")
-                    
+        # Get for each pixel the first bit of the color component.
+        for row in pixels:
+            for pixel in row:
+                first_bit: bool = binary.int_to_bin(pixel[self.component])[-1]
+                #print(first_bit, end=" ")
+                bits = numpy.append(bits, first_bit)
 
-        return difference
+        #print(f"Bin: {bits[0:48]}")
+        # Get character chain
+        decoded_str: str = binary.bin_to_str(bits, self.character_size, False)
+
+        self.message = decoded_str
+
+        return decoded_str
 
     def read_image_of_text(self, name: str, component: int) -> str:
         ascii_blacklist: list[int] = [0]
@@ -53,17 +59,43 @@ class Decode(image.Image):
         
         if not message:
             print("(~) - Message is empty.")
+
+        self.message = message
+        
         return message
+
+    def save_decoded_message(self, custom_name: str | None = None) -> None:
+        name: str
+        if custom_name is None:
+            name = self.name
+        else:
+            name = custom_name
+        
+        try:
+            with open(Path(self.decoded_directory + name + ".log"), "a") as file_save:
+                file_save.write(f"Decoding {self.decoded_directory + name}, on {datetime.datetime.now()}.\n")
+                file_save.write("Raw: \n")
+                file_save.write(self.message)
+                file_save.write("\n\nEND.\n\n")
+            print(f"(+) - Succesfully saved in `{self.decoded_directory + name}.log`.")
+        except OSError:
+            print(f"(!) - Couldn't log in `{self.decoded_directory + name}.log`.")
 
 if __name__ == "__main__":
     import colors
     import test_utils
 
-    print("# TEST - Decode")
+    print("# InPicture.")
+    print("## DECODE.")
 
-    d1 = Decode("medium1.bmp", "medium1.bmp", colors.R)
-    #dd1 = d1.compare_images()
-    #print(dd1)
+    d1 = Decode(
+        "medium1.bmp", 
+        colors.R,
+        8,
+    )
+    dd1: str = d1.read_hidden_text()
+    d1.save_decoded_message()
 
     dt1: str = d1.read_image_of_text("message1.bmp", colors.G).strip()
+    d1.save_decoded_message("message1.bmp")
     assert dt1 == test_utils.TEXT_LONG1
