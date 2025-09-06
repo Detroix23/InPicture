@@ -2,6 +2,48 @@
 Given 2 images, find the hidden string.
 """
 
-class DecodeImages:
-    def __init__(self) -> None:
-        pass
+import numpy
+from PIL import Image
+from pathlib import Path
+
+import image
+
+
+class Decode(image.Image):
+    def __init__(
+        self, 
+        origin: str, 
+        coded: str, 
+        component: int
+    ) -> None:
+        self.origin: str = origin
+        self.coded: str = coded
+        self.component: int = component
+        
+
+    def compare_images(self) -> list[bool]:
+        difference: list[bool] = []
+        # Open both files.
+        pixels_origin: numpy.ndarray[tuple[int, int, int]]
+        pixels_coded: numpy.ndarray[tuple[int, int, int]]
+        with Image.open(Path(self.origin_directory + self.origin)) as image_origin:
+            pixels_origin = numpy.array(image_origin)
+        with Image.open(Path(self.coded_directory + self.coded)) as image_coded:
+            pixels_coded = numpy.array(image_coded)
+
+        for row_origin, row_coded in zip(pixels_origin, pixels_coded):
+            for origin, coded in zip(row_origin, row_coded):
+                if origin[self.component] != coded[self.component]:
+                    print(f"diff: {origin} != {coded}")
+                    
+
+        return difference
+    
+if __name__ == "__main__":
+    import colors
+
+    print("# TEST - Decode")
+
+    d = Decode("medium1.bmp", "medium1.bmp", colors.R)
+    dd = d.compare_images()
+    print(dd)
