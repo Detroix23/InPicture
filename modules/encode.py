@@ -20,6 +20,7 @@ def processing(function: Callable[..., tuple[Image.Image, numpy.ndarray]]) -> Ca
         if self.print_array:
             print(f"Pixels of image `{self.name}`: {pixels}")
         if self.open_when_ready and self.coded_image is not None:
+            print(f"Displaying image `{self.name}`.")
             self.coded_image.show()
         if self.auto_save:
             self.save_image_coded()
@@ -165,7 +166,6 @@ if __name__ == "__main__":
         colors.R,
         auto_save=False,
         open_when_ready=True,
-        print_array=True,
     )
     
     ie_color1 = Encode(
@@ -174,6 +174,5 @@ if __name__ == "__main__":
         colors.G,
         auto_save=True,
         open_when_ready=False,
-        print_array=True,
     )
     ie_color1.create_image_with_text()

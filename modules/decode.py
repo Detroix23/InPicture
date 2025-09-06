@@ -40,6 +40,7 @@ class Decode(image.Image):
         return difference
 
     def read_image_of_text(self, name: str, component: int) -> str:
+        ascii_blacklist: list[int] = [0]
         pixels: numpy.ndarray
         with Image.open(Path(self.coded_directory + name)) as image:
             pixels = numpy.array(image)
@@ -47,7 +48,8 @@ class Decode(image.Image):
         message: str = ""
         for row in pixels:
             for pixel in row:
-                message += chr(pixel[component])
+                if pixel[component] not in ascii_blacklist:
+                    message += chr(pixel[component])
         
         if not message:
             print("(~) - Message is empty.")
@@ -55,12 +57,13 @@ class Decode(image.Image):
 
 if __name__ == "__main__":
     import colors
+    import test_utils
 
     print("# TEST - Decode")
 
     d1 = Decode("medium1.bmp", "medium1.bmp", colors.R)
-    dd1 = d1.compare_images()
-    print(dd1)
+    #dd1 = d1.compare_images()
+    #print(dd1)
 
-    dt1 = d1.read_image_of_text("message1.bmp", colors.G)
-    print(dt1)
+    dt1: str = d1.read_image_of_text("message1.bmp", colors.G).strip()
+    assert dt1 == test_utils.TEXT_LONG1
