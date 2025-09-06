@@ -38,12 +38,29 @@ class Decode(image.Image):
                     
 
         return difference
-    
+
+    def read_image_of_text(self, name: str, component: int) -> str:
+        pixels: numpy.ndarray
+        with Image.open(Path(self.coded_directory + name)) as image:
+            pixels = numpy.array(image)
+
+        message: str = ""
+        for row in pixels:
+            for pixel in row:
+                message += chr(pixel[component])
+        
+        if not message:
+            print("(~) - Message is empty.")
+        return message
+
 if __name__ == "__main__":
     import colors
 
     print("# TEST - Decode")
 
-    d = Decode("medium1.bmp", "medium1.bmp", colors.R)
-    dd = d.compare_images()
-    print(dd)
+    d1 = Decode("medium1.bmp", "medium1.bmp", colors.R)
+    dd1 = d1.compare_images()
+    print(dd1)
+
+    dt1 = d1.read_image_of_text("message1.bmp", colors.G)
+    print(dt1)

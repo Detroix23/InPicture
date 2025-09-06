@@ -4,24 +4,26 @@ Handle, read and decode images
 
 from PIL import Image
 import numpy
-from typing import Callable, ParamSpec, TypeVar
+from typing import Callable, ParamSpec
 
 import image
 import binary
 
-# Bloatead typing
+# Bloated typing
 Param = ParamSpec("Param")
-RetType = TypeVar("RetType")
-def processing(function: Callable[..., RetType]) -> Callable[..., RetType]:
+def processing(function: Callable[..., tuple[Image.Image, numpy.ndarray]]) -> Callable[..., Image.Image]:
     """
     Allow common task after and before the processing of an image.
     """
-    def wrapper(self: 'Encode', *args: Param.args, **kwargs: Param.kwargs) -> RetType:
-        image: RetType = function(self, *args, **kwargs)
+    def wrapper(self: 'Encode', *args: Param.args, **kwargs: Param.kwargs) -> Image.Image:
+        image, pixels = function(self, *args, **kwargs)
+        if self.print_array:
+            print(f"Pixels of image `{self.name}`: {pixels}")
         if self.open_when_ready and self.coded_image is not None:
             self.coded_image.show()
         if self.auto_save:
             self.save_image_coded()
+
 
         return image
     return wrapper
@@ -35,29 +37,33 @@ class Encode(image.Image):
         name: str, 
         message: str, 
         component: int, 
-        auto_save: bool = True,
-        open_when_ready: bool = True
+        auto_save: bool = False,
+        open_when_ready: bool = True,
+        print_array: bool = False
     ) -> None:
         self.name: str = name
         self.message: str = message
         self.code_component: int = component
+        
         self.auto_save: bool = auto_save
         self.open_when_ready: bool = open_when_ready
+        self.print_array: bool = print_array
 
         self.coded_image: Image.Image | None = None
 
     
-    def code_message_in(self, component: int) -> Image.Image:
+    def code_message_in(self, component: int) -> tuple[Image.Image, numpy.ndarray]:
         """
         Modify the origin image by setting the first bit of the color component to the bit of the char string.
         Component int {0, 1, 2}.
         Returns and adds to `coded image` the treated image.
         """
+        pixels: numpy.ndarray
         coded_image: Image.Image
         with Image.open(self.origin_directory + self.name) as image:
             # Converting image to pixels.
             pixels = numpy.array(image)
-            size = (pixels.shape[0], pixels.shape[1])
+            size: tuple[int, int] = (pixels.shape[0], pixels.shape[1])
 
             # Message to bits
             message_bit: list[bool] = binary.str_to_bin(self.message)
@@ -78,15 +84,16 @@ class Encode(image.Image):
 
         self.coded_image = coded_image
 
-        return coded_image
+        return coded_image, pixels
 
     @processing
-    def create_image_with_text(self, custom_color_mask: tuple[int, int, int] | None = None) -> Image.Image:
+    def create_image_with_text(self, custom_color_mask: tuple[int, int, int] | None = None) -> tuple[Image.Image, numpy.ndarray]:
         """
         Create a monochrome image with the given text.
         Create a square and complete with black pixels.
         Returns and adds to `coded image` the treated image.
         """
+        # Colors
         color_mask: tuple[int, int, int]
         if custom_color_mask is None:
             color_mask_temp = [0, 0, 0]
@@ -98,34 +105,31 @@ class Encode(image.Image):
         components: int = len(color_mask)
 
 
-        # Message to bits
-        message_int: numpy.ndarray = numpy.array([ord(letter) for letter in self.message])
+        # Message to bits (wipes character that are bigger than 255).
+        message_int: numpy.ndarray = numpy.array([ord(letter) for letter in self.message if ord(letter) < 256])
 
         # Fill the 1D array to match the number of pixels needed for the square
         side: int = int(numpy.ceil(numpy.sqrt(len(message_int))))
         while len(message_int) < side ** 2:
             message_int = numpy.insert(message_int, 0, 0, axis=0)
-            
-        #print("Fs:", message_int)
 
         # Apply the color mask
-        colors: numpy.ndarray = numpy.empty(shape=(message_int.shape + (components,)), dtype='uint8')
+        colors: numpy.ndarray = numpy.empty(
+            shape=(message_int.shape + (components,)), 
+            dtype='uint8'
+        )
         for i, number in enumerate(message_int):
             colors[i] = numpy.array([color_mask[0] * number, color_mask[1] * number, color_mask[2] * number], dtype='uint8')
         
-        #print("Cs:", colors)
-
         # 2D-ify
         square: numpy.ndarray = colors.reshape((side, side, components))
-
-        print("Cc:", square)
 
         # Convert
         image_from_text: Image.Image = Image.fromarray(square)
         
         self.coded_image = image_from_text
 
-        return image_from_text
+        return image_from_text, square
 
 
     def save_image_coded(self, custom_name: str | None = None) -> None:
@@ -160,7 +164,8 @@ if __name__ == "__main__":
         test_utils.TEXT_LONG1, 
         colors.R,
         auto_save=False,
-        open_when_ready=True
+        open_when_ready=True,
+        print_array=True,
     )
     
     ie_color1 = Encode(
@@ -168,6 +173,7 @@ if __name__ == "__main__":
         test_utils.TEXT_LONG1,
         colors.G,
         auto_save=True,
-        open_when_ready=False
+        open_when_ready=False,
+        print_array=True,
     )
     ie_color1.create_image_with_text()
