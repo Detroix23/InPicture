@@ -4,20 +4,45 @@ Handle, read and decode images
 
 from PIL import Image
 import numpy
+from typing import Callable, ParamSpec, TypeVar
 
 import image
 import binary
-import test_utils
 
+# Bloatead typing
+Param = ParamSpec("Param")
+RetType = TypeVar("RetType")
+def processing(function: Callable[..., RetType]) -> Callable[..., RetType]:
+    """
+    Allow common task after and before the processing of an image.
+    """
+    def wrapper(self: 'Encode', *args: Param.args, **kwargs: Param.kwargs) -> RetType:
+        image: RetType = function(self, *args, **kwargs)
+        if self.open_when_ready and self.coded_image is not None:
+            self.coded_image.show()
+        if self.auto_save:
+            self.save_image_coded()
+
+        return image
+    return wrapper
 
 class Encode(image.Image):
     """
     Generate from a given origin image a coded image.
     """
-    def __init__(self, name: str, message: str, component: int) -> None:
+    def __init__(
+        self, 
+        name: str, 
+        message: str, 
+        component: int, 
+        auto_save: bool = True,
+        open_when_ready: bool = True
+    ) -> None:
         self.name: str = name
         self.message: str = message
         self.code_component: int = component
+        self.auto_save: bool = auto_save
+        self.open_when_ready: bool = open_when_ready
 
         self.coded_image: Image.Image | None = None
 
@@ -55,13 +80,24 @@ class Encode(image.Image):
 
         return coded_image
 
-    def create_image_with_text(self, color_mask: tuple[int, int, int]) -> Image.Image:
+    @processing
+    def create_image_with_text(self, custom_color_mask: tuple[int, int, int] | None = None) -> Image.Image:
         """
         Create a monochrome image with the given text.
         Create a square and complete with black pixels.
         Returns and adds to `coded image` the treated image.
         """
-        components: int = 3
+        color_mask: tuple[int, int, int]
+        if custom_color_mask is None:
+            color_mask_temp = [0, 0, 0]
+            color_mask_temp[self.code_component] = 1
+            color_mask = tuple(color_mask_temp)  # type: ignore[reportAssignmentType]
+        else:
+            color_mask = custom_color_mask
+
+        components: int = len(color_mask)
+
+
         # Message to bits
         message_int: numpy.ndarray = numpy.array([ord(letter) for letter in self.message])
 
@@ -86,7 +122,6 @@ class Encode(image.Image):
 
         # Convert
         image_from_text: Image.Image = Image.fromarray(square)
-        image_from_text.show()
         
         self.coded_image = image_from_text
 
@@ -112,18 +147,27 @@ class Encode(image.Image):
         else:
             print(f"(!) - No image in buffer.")
 
+    
+
+
+
 if __name__ == "__main__":
     import colors
+    import test_utils
+
     ie_mario = Encode(
         "medium1.bmp", 
         test_utils.TEXT_LONG1, 
-        colors.R
-        )
+        colors.R,
+        auto_save=False,
+        open_when_ready=True
+    )
     
     ie_color1 = Encode(
         "message1.bmp",
         test_utils.TEXT_LONG1,
-        colors.R
+        colors.G,
+        auto_save=True,
+        open_when_ready=False
     )
-    ie_color1.create_image_with_text((1, 0, 0))
-    ie_color1.save_image_coded()
+    ie_color1.create_image_with_text()
