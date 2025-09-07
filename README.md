@@ -1,0 +1,38 @@
+# InPicture
+V1.1.0 - September 2025
+
+
+## Usage.
+*InPicture* is a script that allows to hide a message into an image.
+More information can be found in the `./info/` directory.
+
+All original images are put in the `./data/origin/` folder. They are preserved.
+In the main function, in `main.py`, are put the instructions. 3 exemples are given.
+
+#### Encoding and decoding an image.
+Particularly, you will use the `Encode` class, that you need to initialize first.
+    - It takes as arguments the image name, the message, and the color component (R, G, B) in which you want to hide the message. 
+    - On the newly created class, call `code_message_in`, to encode the message into the image.
+    - To see the image, call the PIL method on `coded_image` `show`. 
+    - To save it in the `./data/coded/` directory, call `save_image_coded`.
+    - The 2 steps above can be automated by setting on `Encode` the paramaters `auto_save`, `open_when_ready`, `print_array`.
+    -Then, to decoded use the `Decode` class.
+
+#### Create an image with text.
+You can also create, in this version, an image from scratch using the ASCII character number.
+For that use the `create_image_with_text` on `Encode`.
+
+
+## Tools
+This script is coded for Python 3.12 on a Virutal Environemment.
+It utilizes Numpy and Pillow for the image processing.
+
+
+## License
+**CC-BY 4.0**
+Creative Commons Attribution 4.0 International
+
+This license requires that reusers give credit to the creator. It allows reusers to distribute, remix, adapt, and build upon the material in any medium or format, even for commercial purposes.
+
+[creativecommons.org/licenses/by/4.0](https://creativecommons.org/licenses/by/4.0/)
+

@@ -1,13 +1,13 @@
 """
 Hide a message in a image, in a unoticable way
 """
+import modules.encode as encode
+import modules.decode as decode
+import modules.colors as colors
+import modules.test_utils as test_utils
+
 
 if __name__ == '__main__':
-    import modules.encode as encode
-    import modules.decode as decode
-    import modules.colors as colors
-    import modules.test_utils as test_utils
-
     print("# InPicture.")
     print("## MAIN.\n")
 
