@@ -57,7 +57,7 @@ class Encode(image.CodeImage):
         self.coded_image: Image.Image | None = None
 
     
-
+    @processing
     def code_message_in(self, custom_component: int | None = None) -> tuple[Image.Image, numpy.ndarray]:
         """
         Modify the origin image by setting the first bit of the color component to the bit of the char string.

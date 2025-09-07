@@ -26,6 +26,7 @@ class Decode(image.CodeImage):
         ) 
 
         self.character_size: int = character_size
+        self.message_clean: str = ""
 
     def read_hidden_text(self) -> str:
         bits: numpy.ndarray = numpy.array([], dtype=bool)
@@ -85,12 +86,53 @@ class Decode(image.CodeImage):
         try:
             with open(Path(self.decoded_directory + name + ".log"), "a") as file_save:
                 file_save.write(f"Decoding {self.decoded_directory + name}, on {datetime.datetime.now()}.\n")
-                file_save.write("Raw: \n")
-                file_save.write(self.message)
-                file_save.write("\n\nEND.\n\n")
+                if self.message:
+                    file_save.write("Raw: \n")
+                    file_save.write(f"{self.message}\n")
+                else:
+                    file_save.write("No message.\n")
+                if self.message_clean:
+                    file_save.write("Clean: \n")
+                    file_save.write(f"{self.message_clean}\n")
+                file_save.write("\nEND.\n\n")
             print(f"(+) - Succesfully saved in `{self.decoded_directory + name}.log`.")
         except OSError:
             print(f"(!) - Couldn't log in `{self.decoded_directory + name}.log`.")
+
+    def clean_message(self) -> str:
+        """
+        Clean the decoded message by: triming, watching for key word "STOP.", and consecutive non-alphanumeric characters.
+        """
+        alphanumerics: list[str] = [' ', 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', ',', '.', '!', '?', ';', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9'] 
+        alphanumeric_checks: int = 3
+        stop_symbol: str = "STOP."
+        # Triming
+        clean_message: str = self.message.strip()
+        # STOP.
+        stop_index: int = clean_message.find(stop_symbol)
+        if stop_index != -1:
+            clean_message = clean_message[0: stop_index + len(stop_symbol) + 1]
+        # Consecutive chars
+        i: int = 0
+        alphanumeric_valid: bool = True
+        while alphanumeric_valid and i < len(clean_message):
+            local_valid: bool = False
+            j: int = 0
+            while not local_valid and j < alphanumeric_checks and i + j < len(clean_message):
+                # On the whole checks, if one is a valid alphanumerical, the whole test is correct.
+                local_valid |= clean_message[i + j] in alphanumerics
+                j += 1
+            # If true, remains true, else false.
+            alphanumeric_valid &= local_valid
+            i += 1
+        if not alphanumeric_valid:
+            clean_message = clean_message[0: i - 1]
+
+        #print(clean_message)
+        self.message_clean = clean_message
+
+        return clean_message
+
 
 if __name__ == "__main__":
     import colors
@@ -105,6 +147,7 @@ if __name__ == "__main__":
         8,
     )
     dd1: str = d1.read_hidden_text()
+    d1.clean_message()
     d1.save_decoded_message()
 
     d2 = Decode(
@@ -113,5 +156,6 @@ if __name__ == "__main__":
         8,
     )
     dt2: str = d2.read_image_of_text().strip()
+    d2.clean_message()
     d2.save_decoded_message()
     assert dt2 == test_utils.TEXT_LONG1
