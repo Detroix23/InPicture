@@ -8,20 +8,24 @@ from pathlib import Path
 import datetime
 
 
-import image
-import binary
+import modules.image as image
+import modules.binary as binary
 
-class Decode(image.Image):
+class Decode(image.CodeImage):
     def __init__(
         self, 
         name: str,  
         component: int,
         character_size: int = 8
     ) -> None:
-        self.name: str = name
-        self.component: int = component
+        super().__init__(
+            name, 
+            "", 
+            component,
+            character_size
+        ) 
+
         self.character_size: int = character_size
-        self.message: str = ""
 
     def read_hidden_text(self) -> str:
         bits: numpy.ndarray = numpy.array([], dtype=bool)

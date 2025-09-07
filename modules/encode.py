@@ -4,12 +4,12 @@ Handle, read and decode images
 
 from PIL import Image
 import numpy
+
+import modules.image as image
+import modules.binary as binary
+
+# Bloated typing for decorator.
 from typing import Callable, ParamSpec
-
-import image
-import binary
-
-# Bloated typing
 Param = ParamSpec("Param")
 def processing(function: Callable[..., tuple[Image.Image, numpy.ndarray]]) -> Callable[..., Image.Image]:
     """
@@ -29,7 +29,7 @@ def processing(function: Callable[..., tuple[Image.Image, numpy.ndarray]]) -> Ca
         return image
     return wrapper
 
-class Encode(image.Image):
+class Encode(image.CodeImage):
     """
     Generate from a given origin image a coded image.
     """
@@ -37,15 +37,19 @@ class Encode(image.Image):
         self, 
         name: str, 
         message: str, 
-        component: int, 
+        component: int,
+        character_size: int = 8,
         auto_save: bool = False,
         open_when_ready: bool = True,
         print_array: bool = False
     ) -> None:
-        self.name: str = name
-        self.message: str = message
-        self.code_component: int = component
-        
+        super().__init__(
+            name, 
+            message, 
+            component,
+            character_size
+        ) 
+
         self.auto_save: bool = auto_save
         self.open_when_ready: bool = open_when_ready
         self.print_array: bool = print_array
@@ -53,6 +57,7 @@ class Encode(image.Image):
         self.coded_image: Image.Image | None = None
 
     
+
     def code_message_in(self, custom_component: int | None = None) -> tuple[Image.Image, numpy.ndarray]:
         """
         Modify the origin image by setting the first bit of the color component to the bit of the char string.
@@ -62,7 +67,7 @@ class Encode(image.Image):
         # Colors
         component: int
         if custom_component is None:
-            component = self.code_component
+            component = self.component
         else:
             component = custom_component
 
@@ -75,7 +80,7 @@ class Encode(image.Image):
         size: tuple[int, int] = (pixels.shape[0], pixels.shape[1])
 
         # Message to bits
-        message_bit: list[bool] = binary.str_to_bin(self.message, 8)
+        message_bit: list[bool] = binary.str_to_bin(self.message, self.character_size)
         #print(f"Bin: {message_bit[0:48]}")
 
         # Iterating over each pyxel.
@@ -85,7 +90,7 @@ class Encode(image.Image):
             for y in range(size[1]):
                 if count < len(message_bit):
                     #print(message_bit[count], end=" ")
-                    color_bin = binary.int_to_bin(pixels[x, y][component], 8)
+                    color_bin = binary.int_to_bin(pixels[x, y][component], self.character_size)
                     color_bin[-1] = message_bit[count]
                     pixels[x, y, component] = binary.bin_to_int(color_bin)
                     count += 1 
@@ -108,7 +113,7 @@ class Encode(image.Image):
         color_mask: tuple[int, int, int]
         if custom_color_mask is None:
             color_mask_temp = [0, 0, 0]
-            color_mask_temp[self.code_component] = 1
+            color_mask_temp[self.component] = 1
             color_mask = tuple(color_mask_temp)  # type: ignore[reportAssignmentType]
         else:
             color_mask = custom_color_mask
@@ -127,10 +132,13 @@ class Encode(image.Image):
         # Apply the color mask
         colors: numpy.ndarray = numpy.empty(
             shape=(message_int.shape + (components,)), 
-            dtype='uint8'
+            dtype="uint8"
         )
         for i, number in enumerate(message_int):
-            colors[i] = numpy.array([color_mask[0] * number, color_mask[1] * number, color_mask[2] * number], dtype='uint8')
+            colors[i] = numpy.array(
+                [color_mask[0] * number, color_mask[1] * number, color_mask[2] * number], 
+                dtype="uint8"
+            )
         
         # 2D-ify
         square: numpy.ndarray = colors.reshape((side, side, components))
