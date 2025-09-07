@@ -45,10 +45,17 @@ class Decode(image.Image):
 
         return decoded_str
 
-    def read_image_of_text(self, name: str, component: int) -> str:
+    def read_image_of_text(self, custom_component: int | None = None) -> str:
+        component: int
+        if custom_component is not None:
+            component = custom_component
+        else:
+            component = self.component
+
         ascii_blacklist: list[int] = [0]
+        # All pixels of image
         pixels: numpy.ndarray
-        with Image.open(Path(self.coded_directory + name)) as image:
+        with Image.open(Path(self.coded_directory + self.name)) as image:
             pixels = numpy.array(image)
 
         message: str = ""
@@ -96,6 +103,11 @@ if __name__ == "__main__":
     dd1: str = d1.read_hidden_text()
     d1.save_decoded_message()
 
-    dt1: str = d1.read_image_of_text("message1.bmp", colors.G).strip()
-    d1.save_decoded_message("message1.bmp")
-    assert dt1 == test_utils.TEXT_LONG1
+    d2 = Decode(
+        "message1.bmp", 
+        colors.G,
+        8,
+    )
+    dt2: str = d2.read_image_of_text().strip()
+    d2.save_decoded_message()
+    assert dt2 == test_utils.TEXT_LONG1
