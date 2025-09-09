@@ -35,6 +35,7 @@ class Decode(image.CodeImage):
         component: int,
         character_size: int = 8,
         open_when_ready: bool = True,
+        log_raw: bool = False,
     ) -> None:
         super().__init__(
             name, 
@@ -46,6 +47,7 @@ class Decode(image.CodeImage):
         self.character_size: int = character_size
         self.message_clean: str = ""
 
+        self.log_raw: bool = log_raw
         self.open_when_ready: bool = open_when_ready
 
     @processing
@@ -109,14 +111,17 @@ class Decode(image.CodeImage):
             with open(Path(self.decoded_directory + name + ".log"), "a") as file_save:
                 file_save.write(f"Decoding {self.decoded_directory + name}, on {datetime.datetime.now()}.\n")
                 file_save.write(f"Color component: {self.component}.\n")
-                if self.message:
+                if self.message and self.log_raw:
                     file_save.write("Raw: \n")
                     file_save.write(f"{self.message}\n")
-                else:
-                    file_save.write("No message.\n")
+                elif self.log_raw:
+                    file_save.write("No raw message.\n")
                 if self.message_clean:
                     file_save.write("Clean: \n")
                     file_save.write(f"{self.message_clean}\n")
+                elif not self.log_raw:
+                    file_save.write("No messsage.\n")
+
                 file_save.write("\nEND.\n\n")
             print(f"(+) - Succesfully saved in `{self.decoded_directory + name}.log`.")
         except OSError:

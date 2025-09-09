@@ -138,16 +138,18 @@ class UiConsole:
                         color: int = int(UiConsole.verfied_input(
                             "- Color component RGB [0 | 1 | 2](0): ",
                             self.symbol_component,
-                            default=0   
+                            default=0,
                         ))
                         character_size: int = 8
                         open_when_ready: bool = True
+                        log_raw: bool = False
 
                         image_decode: decode.Decode = decode.Decode(
                             name,
                             color,
                             character_size,
-                            open_when_ready=open_when_ready
+                            open_when_ready=open_when_ready,
+                            log_raw=log_raw,
                         )
                         image_decode.read_hidden_text()
                         image_decode.clean_message()

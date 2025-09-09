@@ -68,6 +68,7 @@ if __name__ == '__main__':
         colors.B,
         8,
         open_when_ready=False,
+        log_raw=True,
     )
     d3.read_hidden_text()
     d3.clean_message()
