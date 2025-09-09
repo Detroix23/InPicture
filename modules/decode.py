@@ -108,6 +108,7 @@ class Decode(image.CodeImage):
         try:
             with open(Path(self.decoded_directory + name + ".log"), "a") as file_save:
                 file_save.write(f"Decoding {self.decoded_directory + name}, on {datetime.datetime.now()}.\n")
+                file_save.write(f"Color component: {self.component}.\n")
                 if self.message:
                     file_save.write("Raw: \n")
                     file_save.write(f"{self.message}\n")
