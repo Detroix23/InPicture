@@ -5,7 +5,7 @@ import modules.encode as encode
 import modules.decode as decode
 import modules.colors as colors
 import modules.test_utils as test_utils
-
+import modules.ui as ui
 
 if __name__ == '__main__':
     print("# InPicture.")
@@ -70,3 +70,6 @@ if __name__ == '__main__':
     d3.clean_message()
     d3.save_decoded_message()
     assert d3.message_clean == test_utils.TEXT_SHORT2
+
+    print("\n## User interface.\n")
+    ui.UiConsole()
