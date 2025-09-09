@@ -24,7 +24,8 @@ def processing(function: Callable[..., str]) -> Callable[..., str]:
         if self.open_when_ready and self.message:
             print(f"Opening, using default text editor, `{self.decoded_directory}{self.name}`.")
             autoOpen.open_text(self.decoded_directory + self.name + ".log")
-
+        if self.do_clean and message:
+            self.clean_message()
         return message
     return wrapper
 
@@ -47,6 +48,7 @@ class Decode(image.CodeImage):
         self.character_size: int = character_size
         self.message_clean: str = ""
 
+        self.do_clean: bool = True
         self.log_raw: bool = log_raw
         self.open_when_ready: bool = open_when_ready
 

@@ -152,8 +152,6 @@ class UiConsole:
                             log_raw=log_raw,
                         )
                         image_decode.read_hidden_text()
-                        image_decode.clean_message()
-                        image_decode.save_decoded_message()
 
                     case _:
                         print("(X) - Invalid mode.")
