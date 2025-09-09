@@ -1,7 +1,10 @@
+import os
+
+import modules.image as image
 import modules.encode as encode
 import modules.decode as decode
 
-class UiConsole:
+class UiConsole(image.CodeImage):
     """
     Allow user to type in instructions in the command line. 
     """
@@ -26,6 +29,98 @@ class UiConsole:
         if self.debug:
             print("!Entering interactive mode. [availble](default).")
         self.main_loop()
+
+    def main_loop(self) -> None:
+        try:
+            while self.is_running:
+                # Choosing side.
+                print("## Enter values. [allowed values] (default value). Ctrl+C to exit at any time.")
+                action_mode: str = UiConsole.verfied_input(
+                    "- Choose an action, a mode [encode, en | decode, de](en): ",
+                    self.symbol_mode,
+                    default=0
+                )
+                match action_mode:
+                    case "en":
+                        print("### Encoding.")
+                        self.list_directory(self.origin_directory)
+
+                        name: str = UiConsole.verfied_input("- Name of the file to be encoded [str]: ")
+                        message: str = UiConsole.verfied_input("- Message [str]: ")
+                        color: int = int(UiConsole.verfied_input(
+                            "- Color component, RGB [0 | 1 | 2](0): ", 
+                            self.symbol_component, 
+                            default=0,
+                        ))
+                        open_when_ready: bool = bool(UiConsole.verfied_input(
+                            "- Open when ready [Yes/ No](Yes): ",
+                            self.symbol_bool,
+                            default=1
+                        ))
+
+                        image_encode: encode.Encode = encode.Encode(
+                            name,
+                            message,
+                            color,
+                            auto_save=False,
+                            open_when_ready=open_when_ready,
+                            print_array=self.debug
+                        )
+                        image_encode.code_message_in()
+
+                        if open_when_ready:
+                            save: bool = bool(UiConsole.verfied_input(
+                                "- Save [Yes/ No](Yes): ",
+                                self.symbol_bool,
+                                default=1    
+                            ))
+                            if save:
+                                image_encode.save_image_coded()
+                            else:
+                                print("*Canceling.*")
+                        else:
+                            image_encode.save_image_coded()
+
+
+                    case "de":
+                        print("### Decoding.")
+                        self.list_directory(self.coded_directory)
+
+                        name: str = UiConsole.verfied_input("- Name of the file to decode [str]: ")
+                        color: int = int(UiConsole.verfied_input(
+                            "- Color component RGB [0 | 1 | 2](0): ",
+                            self.symbol_component,
+                            default=0,
+                        ))
+                        character_size: int = 8
+                        open_when_ready: bool = True
+                        log_raw: bool = False
+
+                        image_decode: decode.Decode = decode.Decode(
+                            name,
+                            color,
+                            character_size,
+                            open_when_ready=open_when_ready,
+                            log_raw=log_raw,
+                        )
+                        image_decode.read_hidden_text()
+
+                    case _:
+                        print("(X) - Invalid mode.")
+                    
+        except KeyboardInterrupt as exception:
+            print(f"\n*Interrupted the main loop `{exception}`. Executing the UI.*\n")
+        
+        return
+
+    @staticmethod
+    def list_directory(directory: str) -> None:
+        print(f"*Files in `{directory}`.*")
+        files: list[str] = os.listdir(directory)
+        for file in files:
+            if file.lower() not in ["readme.md", "readme"]:
+                print(f"\t- {file}")
+        print()
 
     @staticmethod
     def verfied_input(
@@ -81,89 +176,5 @@ class UiConsole:
         print(f"R: `{true_response}`")
         return true_response
 
-
-    def main_loop(self) -> None:
-        try:
-            while self.is_running:
-                # Choosing side.
-                print("## Enter values. [allowed values] (default value). Ctrl+C to exit at any time.")
-                action_mode: str = UiConsole.verfied_input(
-                    "- Choose an action, a mode [encode, en | decode, de](en): ",
-                    self.symbol_mode,
-                    default=0
-                )
-                match action_mode:
-                    case "en":
-                        print("### Encoding.")
-                        name: str = UiConsole.verfied_input("- Name of the file to be encoded [str]: ")
-                        message: str = UiConsole.verfied_input("- Message [str]: ")
-                        color: int = int(UiConsole.verfied_input(
-                            "- Color component, RGB [0 | 1 | 2](0): ", 
-                            self.symbol_component, 
-                            default=0,
-                        ))
-                        open_when_ready: bool = bool(UiConsole.verfied_input(
-                            "- Open when ready [Yes/ No](Yes): ",
-                            self.symbol_bool,
-                            default=1
-                        ))
-
-                        image_encode: encode.Encode = encode.Encode(
-                            name,
-                            message,
-                            color,
-                            auto_save=False,
-                            open_when_ready=open_when_ready,
-                            print_array=self.debug
-                        )
-                        image_encode.code_message_in()
-
-                        if open_when_ready:
-                            save: bool = bool(UiConsole.verfied_input(
-                                "- Save [Yes/ No](Yes): ",
-                                self.symbol_bool,
-                                default=1    
-                            ))
-                            if save:
-                                image_encode.save_image_coded()
-                            else:
-                                print("*Canceling.*")
-                        else:
-                            image_encode.save_image_coded()
-
-
-                    case "de":
-                        print("### Decoding.")
-                        name: str = UiConsole.verfied_input("- Name of the file to decode [str]: ")
-                        color: int = int(UiConsole.verfied_input(
-                            "- Color component RGB [0 | 1 | 2](0): ",
-                            self.symbol_component,
-                            default=0,
-                        ))
-                        character_size: int = 8
-                        open_when_ready: bool = True
-                        log_raw: bool = False
-
-                        image_decode: decode.Decode = decode.Decode(
-                            name,
-                            color,
-                            character_size,
-                            open_when_ready=open_when_ready,
-                            log_raw=log_raw,
-                        )
-                        image_decode.read_hidden_text()
-
-                    case _:
-                        print("(X) - Invalid mode.")
-                    
-        except KeyboardInterrupt as exception:
-            print(f"\n*Interrupted the main loop `{exception}`. Executing the UI.*\n")
-        
-        return
                 
 
-if __name__ == "__main__":
-    print("# InPicture.")
-    print("## UI.")
-
-    u = UiConsole()
