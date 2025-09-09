@@ -141,11 +141,13 @@ class UiConsole:
                             default=0   
                         ))
                         character_size: int = 8
+                        open_when_ready: bool = True
 
                         image_decode: decode.Decode = decode.Decode(
                             name,
                             color,
-                            character_size
+                            character_size,
+                            open_when_ready=open_when_ready
                         )
                         image_decode.read_hidden_text()
                         image_decode.clean_message()

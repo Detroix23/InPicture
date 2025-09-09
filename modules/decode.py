@@ -10,13 +10,31 @@ import datetime
 
 import modules.image as image
 import modules.binary as binary
+import modules.automaticOpen as autoOpen
+
+# Bloated typing for decorator.
+from typing import Callable, ParamSpec
+Param = ParamSpec("Param")
+def processing(function: Callable[..., str]) -> Callable[..., str]:
+    """
+    Allow common task after and before the processing of an image.
+    """
+    def wrapper(self: 'Decode', *args: Param.args, **kwargs: Param.kwargs) -> str:
+        message: str = function(self, *args, **kwargs)
+        if self.open_when_ready and self.message:
+            print(f"Opening, using default text editor, `{self.decoded_directory}{self.name}`.")
+            autoOpen.open_text(self.decoded_directory + self.name + ".log")
+
+        return message
+    return wrapper
 
 class Decode(image.CodeImage):
     def __init__(
         self, 
         name: str,  
         component: int,
-        character_size: int = 8
+        character_size: int = 8,
+        open_when_ready: bool = True,
     ) -> None:
         super().__init__(
             name, 
@@ -28,6 +46,9 @@ class Decode(image.CodeImage):
         self.character_size: int = character_size
         self.message_clean: str = ""
 
+        self.open_when_ready: bool = open_when_ready
+
+    @processing
     def read_hidden_text(self) -> str:
         bits: numpy.ndarray = numpy.array([], dtype=bool)
         # Open both files.
@@ -50,6 +71,7 @@ class Decode(image.CodeImage):
 
         return decoded_str
 
+    @processing
     def read_image_of_text(self, custom_component: int | None = None) -> str:
         component: int
         if custom_component is not None:
@@ -136,7 +158,7 @@ class Decode(image.CodeImage):
 
 if __name__ == "__main__":
     import colors
-    import test_utils
+    import modules.testUtils as testUtils
 
     print("# InPicture.")
     print("## DECODE.")
@@ -158,4 +180,4 @@ if __name__ == "__main__":
     dt2: str = d2.read_image_of_text().strip()
     d2.clean_message()
     d2.save_decoded_message()
-    assert dt2 == test_utils.TEXT_LONG1
+    assert dt2 == testUtils.TEXT_LONG1

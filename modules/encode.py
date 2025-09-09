@@ -176,7 +176,7 @@ class Encode(image.CodeImage):
 
 if __name__ == "__main__":
     import colors
-    import test_utils
+    import modules.testUtils as testUtils
 
     print("# InPicture.")
     print("## ENCODE.")
@@ -184,7 +184,7 @@ if __name__ == "__main__":
 
     ie_mario = Encode(
         "medium1.bmp", 
-        test_utils.TEXT_SHORT1, 
+        testUtils.TEXT_SHORT1, 
         colors.R,
         auto_save=False,
         open_when_ready=True,
@@ -194,7 +194,7 @@ if __name__ == "__main__":
     
     ie_color1 = Encode(
         "message1.bmp",
-        test_utils.TEXT_LONG1,
+        testUtils.TEXT_LONG1,
         colors.G,
         auto_save=True,
         open_when_ready=False,
