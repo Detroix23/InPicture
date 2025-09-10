@@ -45,7 +45,11 @@ class UiConsole(image.CodeImage):
                         print("### Encoding.")
                         self.list_directory(self.origin_directory)
 
-                        name: str = UiConsole.verfied_input("- Name of the file to be encoded [str]: ")
+                        name: str = UiConsole.verfied_input(
+                            "- Name of the file to be encoded [str]: ",
+                            symbols=list(os.listdir(self.coded_directory)),
+                            error_message="(!) - File not in directory.",
+                        )
                         message: str = UiConsole.verfied_input("- Message [str]: ")
                         color: int = int(UiConsole.verfied_input(
                             "- Color component, RGB [0 | 1 | 2](0): ", 
@@ -84,7 +88,11 @@ class UiConsole(image.CodeImage):
                         print("### Decoding.")
                         self.list_directory(self.coded_directory)
 
-                        name: str = UiConsole.verfied_input("- Name of the file to decode [str]: ")
+                        name: str = UiConsole.verfied_input(
+                            "- Name of the file to decode [str]: ",
+                            symbols=list(os.listdir(self.coded_directory)),
+                            error_message="(!) - File not in directory.",
+                        )
                         color: int = int(UiConsole.verfied_input(
                             "- Color component RGB [0 | 1 | 2](0): ",
                             self.symbol_component,
@@ -115,17 +123,22 @@ class UiConsole(image.CodeImage):
 
     @staticmethod
     def list_directory(directory: str) -> None:
+        """
+        Print the items of the given directory
+        """
         print(f"*Files in `{directory}`.*")
         files: list[str] = os.listdir(directory)
+        
         for file in files:
             if file.lower() not in ["readme.md", "readme"]:
                 print(f"\t- {file}")
         print()
+        return
 
     @staticmethod
     def verfied_input(
         message: str,
-        symbols: dict[str, list[str]] | None = None,
+        symbols: dict[str, list[str]] | list[str] | None = None,
         default: int | None = None,
         must_validate: bool = True,
         allowed_type: type = str,
@@ -134,6 +147,10 @@ class UiConsole(image.CodeImage):
     ) -> str:
         """
         A genral use input sanitaizer that repeats until the user has entered a correct value.
+        `Symbols` define the allowed keywords that the user can type. 
+            - None (default): no restriction
+            - list[str]: Only one keyword for each symbol, itself
+            - dict[str, list[str]]: Each symbol can have multiple keywords.
         `Allowed` contains as keys the true machine return symbol and as value the list of all string that corrispond to that key.
         If none, all responses are correct.
         `Default` is the index of the default key of the allowed list.
@@ -141,6 +158,9 @@ class UiConsole(image.CodeImage):
         valid: bool = False
         true_response: str | None = None 
         i: int = 0
+        if isinstance(symbols, list):
+            symbols = {symbol: [symbol] for symbol in symbols}
+
         while not valid and i < max_iterations:
             response: str = input(message).strip()
 
