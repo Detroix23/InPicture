@@ -1,3 +1,9 @@
+"""
+UI Controller of InPicture.
+UiConsole allow the user to use an interactive terminal console.
+"""
+
+import pathlib as path
 import os
 
 import modules.image as image
@@ -122,7 +128,7 @@ class UiConsole(image.CodeImage):
         return
 
     @staticmethod
-    def list_directory(directory: str) -> None:
+    def list_directory(directory: path.Path) -> None:
         """
         Print the items of the given directory
         """

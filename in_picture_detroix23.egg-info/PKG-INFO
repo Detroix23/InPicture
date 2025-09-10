@@ -1,3 +1,20 @@
+Metadata-Version: 2.4
+Name: in_picture_detroix23
+Version: 1.2.0
+Summary: Encode and decode message hidden in images, using color components bits.
+Author-email: Detroix23 <detroix23@gmail.com>
+License-Expression: CC-BY-4.0
+Project-URL: Repository, https://github.com/Detroix23/InPicture
+Classifier: Programming Language :: Python :: 3
+Classifier: Operating System :: OS Independent
+Classifier: Natural Language :: English
+Requires-Python: >=3.12
+Description-Content-Type: text/markdown
+License-File: LICENSE.md
+Requires-Dist: numpy>=2.3.2
+Requires-Dist: Pillow>=11.3.0
+Dynamic: license-file
+
 # InPicture
 V1.1.0 - September 2025
 

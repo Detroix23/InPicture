@@ -5,6 +5,7 @@ Handle, read and decode images
 from PIL import Image
 import numpy
 import time
+import pathlib as path
 
 import modules.image as image
 import modules.binary as binary
@@ -76,7 +77,7 @@ class Encode(image.CodeImage):
         pixels: numpy.ndarray
         coded_image: Image.Image
         # Converting image to pixels.
-        with Image.open(self.origin_directory + self.name) as image:
+        with Image.open(self.origin_directory / self.name) as image:
             pixels = numpy.array(image)
         size: tuple[int, int] = (pixels.shape[0], pixels.shape[1])
 
@@ -167,11 +168,13 @@ class Encode(image.CodeImage):
             else:
                 name = self.name
 
+            image_path: path.Path = self.coded_directory / name
+
             try:
-                self.coded_image.save(self.coded_directory + name)
-                print(f"(+) - Coded image succesfully saved in `{self.coded_directory + name}`. Generated in {self.time_elapsed:.4f}s.")
+                self.coded_image.save(image_path)
+                print(f"(+) - Coded image succesfully saved in `{image_path}`. Generated in {self.time_elapsed:.4f}s.")
             except OSError:
-                print(f"(!) - Could not save image in `{self.coded_directory + name}`.")
+                print(f"(!) - Could not save image in `{image_path}`.")
         else:
             print(f"(!) - No image in buffer.")
 

@@ -1,14 +1,15 @@
 """
 Define the most basic image data
 """
+import pathlib as path
 
 class CodeImage:
     """
     Base of a cyphering and decyphering image.
     """
-    origin_directory: str = "./data/origin/"
-    coded_directory: str = "./data/coded/"
-    decoded_directory: str = "./data/decoded/"
+    origin_directory: path.Path = path.Path("./data/origin/")
+    coded_directory: path.Path = path.Path("./data/coded/")
+    decoded_directory: path.Path = path.Path("./data/decoded/")
 
     def __init__(self, name: str, message: str, component: int, character_size: int) -> None:
         self.name: str = name

@@ -24,7 +24,7 @@ def processing(function: Callable[..., str]) -> Callable[..., str]:
         message: str = function(self, *args, **kwargs)
         if self.open_when_ready and self.message:
             print(f"Opening, using default text editor, `{self.decoded_directory}{self.name}`.")
-            autoOpen.open_text(Path(self.decoded_directory + self.name + ".log"))
+            autoOpen.open_text(self.decoded_directory / (self.name + ".log"))
         if self.do_clean and message:
             self.clean_message()
         if self.save:
@@ -63,7 +63,8 @@ class Decode(image.CodeImage):
         bits: numpy.ndarray = numpy.array([], dtype=bool)
         # Open both files.
         pixels: numpy.ndarray[tuple[int, int, int]]
-        with Image.open(Path(self.coded_directory + self.name)) as image:
+        image_path: Path = self.coded_directory / self.name
+        with Image.open(image_path) as image:
             pixels = numpy.array(image)
 
         # Get for each pixel the first bit of the color component.
@@ -96,7 +97,8 @@ class Decode(image.CodeImage):
         # All pixels of image
         time_start: float = time.monotonic()
         pixels: numpy.ndarray
-        with Image.open(Path(self.coded_directory + self.name)) as image:
+        image_path: Path = self.coded_directory / self.name
+        with Image.open(image_path) as image:
             pixels = numpy.array(image)
 
         message: str = ""
@@ -120,10 +122,12 @@ class Decode(image.CodeImage):
             name = self.name
         else:
             name = custom_name
-        
+        log_path: Path = self.decoded_directory / (name + ".log")
+        image_path: Path = self.decoded_directory / name
+
         try:
-            with open(Path(self.decoded_directory + name + ".log"), "a") as file_save:
-                file_save.write(f"Decoding {self.decoded_directory + name}, on {datetime.datetime.now()}.\n")
+            with open(log_path, "a") as file_save:
+                file_save.write(f"Decoding {image_path}, on {datetime.datetime.now()}.\n")
                 file_save.write(f"Color component: {self.component}. Decipher time: {self.time_elapsed:.8f}s.\n")
                 if self.message and self.log_raw:
                     file_save.write("Raw: \n")
@@ -137,9 +141,9 @@ class Decode(image.CodeImage):
                     file_save.write("No messsage.\n")
 
                 file_save.write("\nEND.\n\n")
-            print(f"(+) - Succesfully saved in `{self.decoded_directory + name}.log`. Decoded in {self.time_elapsed:.4f}s.")
+            print(f"(+) - Succesfully saved in `{log_path}`. Decoded in {self.time_elapsed:.4f}s.")
         except OSError:
-            print(f"(!) - Couldn't log in `{self.decoded_directory + name}.log`.")
+            print(f"(!) - Couldn't log in `{log_path}`.")
 
     def clean_message(self) -> str:
         """
