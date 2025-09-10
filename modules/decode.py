@@ -26,6 +26,8 @@ def processing(function: Callable[..., str]) -> Callable[..., str]:
             autoOpen.open_text(self.decoded_directory + self.name + ".log")
         if self.do_clean and message:
             self.clean_message()
+        if self.save:
+            self.save_decoded_message()
         return message
     return wrapper
 
@@ -37,6 +39,8 @@ class Decode(image.CodeImage):
         character_size: int = 8,
         open_when_ready: bool = True,
         log_raw: bool = False,
+        save: bool = True,
+
     ) -> None:
         super().__init__(
             name, 
@@ -51,6 +55,7 @@ class Decode(image.CodeImage):
         self.do_clean: bool = True
         self.log_raw: bool = log_raw
         self.open_when_ready: bool = open_when_ready
+        self.save: bool = save
 
     @processing
     def read_hidden_text(self) -> str:

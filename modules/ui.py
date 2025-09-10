@@ -95,6 +95,7 @@ class UiConsole(image.CodeImage):
                         character_size: int = 8
                         open_when_ready: bool = True
                         log_raw: bool = False
+                        save: bool = True
 
                         image_decode: decode.Decode = decode.Decode(
                             name,
@@ -102,6 +103,7 @@ class UiConsole(image.CodeImage):
                             character_size,
                             open_when_ready=open_when_ready,
                             log_raw=log_raw,
+                            save=save,
                         )
                         image_decode.read_hidden_text()
 

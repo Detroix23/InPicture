@@ -46,10 +46,9 @@ if __name__ == '__main__':
         colors.R,
         8,
         open_when_ready=False,
+        save=True,
     )
     d1.read_hidden_text()
-    d1.clean_message()
-    d1.save_decoded_message()
     assert d1.message_clean == testUtils.TEXT_SHORT3
 
     d2 = decode.Decode(
@@ -57,10 +56,9 @@ if __name__ == '__main__':
         colors.G,
         8,
         open_when_ready=False,
+        save=True,
     )
     d2.read_image_of_text()
-    d2.clean_message()
-    d2.save_decoded_message()
     assert d2.message_clean == testUtils.TEXT_LONG1
 
     d3 = decode.Decode(
@@ -69,10 +67,9 @@ if __name__ == '__main__':
         8,
         open_when_ready=False,
         log_raw=True,
+        save=True,
     )
     d3.read_hidden_text()
-    d3.clean_message()
-    d3.save_decoded_message()
     assert d3.message_clean == testUtils.TEXT_SHORT2
 
     print("\n## User interface.\n")
