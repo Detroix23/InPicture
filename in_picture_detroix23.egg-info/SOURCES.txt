@@ -1,0 +1,8 @@
+LICENSE.md
+README.md
+pyproject.toml
+in_picture_detroix23.egg-info/PKG-INFO
+in_picture_detroix23.egg-info/SOURCES.txt
+in_picture_detroix23.egg-info/dependency_links.txt
+in_picture_detroix23.egg-info/requires.txt
+in_picture_detroix23.egg-info/top_level.txt

@@ -4,6 +4,8 @@ Handle, read and decode images
 
 from PIL import Image
 import numpy
+import time
+import pathlib as path
 
 import modules.image as image
 import modules.binary as binary
@@ -75,7 +77,7 @@ class Encode(image.CodeImage):
         pixels: numpy.ndarray
         coded_image: Image.Image
         # Converting image to pixels.
-        with Image.open(self.origin_directory + self.name) as image:
+        with Image.open(self.origin_directory / self.name) as image:
             pixels = numpy.array(image)
         size: tuple[int, int] = (pixels.shape[0], pixels.shape[1])
 
@@ -85,6 +87,7 @@ class Encode(image.CodeImage):
 
         # Iterating over each pyxel.
         # About overflow: loop around.
+        time_start: float = time.monotonic()
         count: int = 0
         for x in range(size[0]):
             for y in range(size[1]):
@@ -94,6 +97,7 @@ class Encode(image.CodeImage):
                     color_bin[-1] = message_bit[count]
                     pixels[x, y, component] = binary.bin_to_int(color_bin)
                     count += 1 
+        self.time_elapsed = time.monotonic() - time_start
 
         # Generating the coded image.
         coded_image = Image.fromarray(pixels)
@@ -124,6 +128,7 @@ class Encode(image.CodeImage):
         # Message to bits (wipes character that are bigger than 255).
         message_int: numpy.ndarray = numpy.array([ord(letter) for letter in self.message if ord(letter) < 256])
 
+        time_start: float = time.monotonic()
         # Fill the 1D array to match the number of pixels needed for the square
         side: int = int(numpy.ceil(numpy.sqrt(len(message_int))))
         while len(message_int) < side ** 2:
@@ -142,6 +147,7 @@ class Encode(image.CodeImage):
         
         # 2D-ify
         square: numpy.ndarray = colors.reshape((side, side, components))
+        self.time_elapsed = time.monotonic() - time_start
 
         # Convert
         image_from_text: Image.Image = Image.fromarray(square)
@@ -162,11 +168,13 @@ class Encode(image.CodeImage):
             else:
                 name = self.name
 
+            image_path: path.Path = self.coded_directory / name
+
             try:
-                self.coded_image.save(self.coded_directory + name)
-                print(f"(+) - Coded image succesfully saved in `{self.coded_directory + name}`.")
+                self.coded_image.save(image_path)
+                print(f"(+) - Coded image succesfully saved in `{image_path}`. Generated in {self.time_elapsed:.4f}s.")
             except OSError:
-                print(f"(!) - Could not save image in `{self.coded_directory + name}`.")
+                print(f"(!) - Could not save image in `{image_path}`.")
         else:
             print(f"(!) - No image in buffer.")
 
@@ -176,7 +184,7 @@ class Encode(image.CodeImage):
 
 if __name__ == "__main__":
     import colors
-    import test_utils
+    import modules.testUtils as testUtils
 
     print("# InPicture.")
     print("## ENCODE.")
@@ -184,7 +192,7 @@ if __name__ == "__main__":
 
     ie_mario = Encode(
         "medium1.bmp", 
-        test_utils.TEXT_SHORT1, 
+        testUtils.TEXT_SHORT1, 
         colors.R,
         auto_save=False,
         open_when_ready=True,
@@ -194,7 +202,7 @@ if __name__ == "__main__":
     
     ie_color1 = Encode(
         "message1.bmp",
-        test_utils.TEXT_LONG1,
+        testUtils.TEXT_LONG1,
         colors.G,
         auto_save=True,
         open_when_ready=False,

@@ -1,22 +1,47 @@
 """
-Given 2 images, find the hidden string.
+Find the hidden string from an image.
 """
 
 import numpy
 from PIL import Image
 from pathlib import Path
 import datetime
+import time
 
 
 import modules.image as image
 import modules.binary as binary
+import modules.automaticOpen as autoOpen
+
+# Bloated typing for decorator.
+from typing import Callable, ParamSpec
+Param = ParamSpec("Param")
+def processing(function: Callable[..., str]) -> Callable[..., str]:
+    """
+    Allow common task after and before the processing of an image.
+    """
+    def wrapper(self: 'Decode', *args: Param.args, **kwargs: Param.kwargs) -> str:
+        message: str = function(self, *args, **kwargs)
+        if self.open_when_ready and self.message:
+            print(f"Opening, using default text editor, `{self.decoded_directory}{self.name}`.")
+            autoOpen.open_text(self.decoded_directory / (self.name + ".log"))
+        if self.do_clean and message:
+            self.clean_message()
+        if self.save:
+            self.save_decoded_message()
+        return message
+    return wrapper
 
 class Decode(image.CodeImage):
     def __init__(
         self, 
         name: str,  
         component: int,
-        character_size: int = 8
+        character_size: int = 8,
+        open_when_ready: bool = True,
+        log_raw: bool = False,
+        save: bool = True,
+
     ) -> None:
         super().__init__(
             name, 
@@ -28,14 +53,22 @@ class Decode(image.CodeImage):
         self.character_size: int = character_size
         self.message_clean: str = ""
 
+        self.do_clean: bool = True
+        self.log_raw: bool = log_raw
+        self.open_when_ready: bool = open_when_ready
+        self.save: bool = save
+
+    @processing
     def read_hidden_text(self) -> str:
         bits: numpy.ndarray = numpy.array([], dtype=bool)
         # Open both files.
         pixels: numpy.ndarray[tuple[int, int, int]]
-        with Image.open(Path(self.coded_directory + self.name)) as image:
+        image_path: Path = self.coded_directory / self.name
+        with Image.open(image_path) as image:
             pixels = numpy.array(image)
 
         # Get for each pixel the first bit of the color component.
+        time_start: float = time.monotonic()
         for row in pixels:
             for pixel in row:
                 first_bit: bool = binary.int_to_bin(pixel[self.component])[-1]
@@ -45,11 +78,13 @@ class Decode(image.CodeImage):
         #print(f"Bin: {bits[0:48]}")
         # Get character chain
         decoded_str: str = binary.bin_to_str(bits, self.character_size, False)
+        self.time_elapsed = time.monotonic() - time_start
 
         self.message = decoded_str
 
         return decoded_str
 
+    @processing
     def read_image_of_text(self, custom_component: int | None = None) -> str:
         component: int
         if custom_component is not None:
@@ -58,9 +93,12 @@ class Decode(image.CodeImage):
             component = self.component
 
         ascii_blacklist: list[int] = [0]
+
         # All pixels of image
+        time_start: float = time.monotonic()
         pixels: numpy.ndarray
-        with Image.open(Path(self.coded_directory + self.name)) as image:
+        image_path: Path = self.coded_directory / self.name
+        with Image.open(image_path) as image:
             pixels = numpy.array(image)
 
         message: str = ""
@@ -68,7 +106,9 @@ class Decode(image.CodeImage):
             for pixel in row:
                 if pixel[component] not in ascii_blacklist:
                     message += chr(pixel[component])
+        self.time_elapsed = time.monotonic() - time_start
         
+
         if not message:
             print("(~) - Message is empty.")
 
@@ -82,22 +122,28 @@ class Decode(image.CodeImage):
             name = self.name
         else:
             name = custom_name
-        
+        log_path: Path = self.decoded_directory / (name + ".log")
+        image_path: Path = self.decoded_directory / name
+
         try:
-            with open(Path(self.decoded_directory + name + ".log"), "a") as file_save:
-                file_save.write(f"Decoding {self.decoded_directory + name}, on {datetime.datetime.now()}.\n")
-                if self.message:
+            with open(log_path, "a") as file_save:
+                file_save.write(f"Decoding {image_path}, on {datetime.datetime.now()}.\n")
+                file_save.write(f"Color component: {self.component}. Decipher time: {self.time_elapsed:.8f}s.\n")
+                if self.message and self.log_raw:
                     file_save.write("Raw: \n")
                     file_save.write(f"{self.message}\n")
-                else:
-                    file_save.write("No message.\n")
+                elif self.log_raw:
+                    file_save.write("No raw message.\n")
                 if self.message_clean:
                     file_save.write("Clean: \n")
                     file_save.write(f"{self.message_clean}\n")
+                elif not self.log_raw:
+                    file_save.write("No messsage.\n")
+
                 file_save.write("\nEND.\n\n")
-            print(f"(+) - Succesfully saved in `{self.decoded_directory + name}.log`.")
+            print(f"(+) - Succesfully saved in `{log_path}`. Decoded in {self.time_elapsed:.4f}s.")
         except OSError:
-            print(f"(!) - Couldn't log in `{self.decoded_directory + name}.log`.")
+            print(f"(!) - Couldn't log in `{log_path}`.")
 
     def clean_message(self) -> str:
         """
@@ -136,7 +182,7 @@ class Decode(image.CodeImage):
 
 if __name__ == "__main__":
     import colors
-    import test_utils
+    import modules.testUtils as testUtils
 
     print("# InPicture.")
     print("## DECODE.")
@@ -158,4 +204,4 @@ if __name__ == "__main__":
     dt2: str = d2.read_image_of_text().strip()
     d2.clean_message()
     d2.save_decoded_message()
-    assert dt2 == test_utils.TEXT_LONG1
+    assert dt2 == testUtils.TEXT_LONG1
