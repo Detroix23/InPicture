@@ -5,8 +5,9 @@ Takes in charge the automatic opening of files
 import subprocess 
 import os
 import platform
+import pathlib as path
 
-def open_text(file_path: str) -> None:
+def open_text(file_path: path.Path) -> None:
     """
     Open text like files automatically using the default text editor/viewer.
     On linux, if you get an error like "symbol loopkup error", it is surely due to the VSCode terminal. 
@@ -32,4 +33,4 @@ if __name__ == "__main__":
     print("# InPicture.")
     print("## Automatic opening.")
 
-    open_text("data/decoded/README.md")
+    open_text(path.Path("data/decoded/README.md"))

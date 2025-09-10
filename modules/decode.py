@@ -1,11 +1,12 @@
 """
-Given 2 images, find the hidden string.
+Find the hidden string from an image.
 """
 
 import numpy
 from PIL import Image
 from pathlib import Path
 import datetime
+import time
 
 
 import modules.image as image
@@ -23,7 +24,7 @@ def processing(function: Callable[..., str]) -> Callable[..., str]:
         message: str = function(self, *args, **kwargs)
         if self.open_when_ready and self.message:
             print(f"Opening, using default text editor, `{self.decoded_directory}{self.name}`.")
-            autoOpen.open_text(self.decoded_directory + self.name + ".log")
+            autoOpen.open_text(Path(self.decoded_directory + self.name + ".log"))
         if self.do_clean and message:
             self.clean_message()
         if self.save:
@@ -66,6 +67,7 @@ class Decode(image.CodeImage):
             pixels = numpy.array(image)
 
         # Get for each pixel the first bit of the color component.
+        time_start: float = time.monotonic()
         for row in pixels:
             for pixel in row:
                 first_bit: bool = binary.int_to_bin(pixel[self.component])[-1]
@@ -75,6 +77,7 @@ class Decode(image.CodeImage):
         #print(f"Bin: {bits[0:48]}")
         # Get character chain
         decoded_str: str = binary.bin_to_str(bits, self.character_size, False)
+        self.time_elapsed = time.monotonic() - time_start
 
         self.message = decoded_str
 
@@ -89,7 +92,9 @@ class Decode(image.CodeImage):
             component = self.component
 
         ascii_blacklist: list[int] = [0]
+
         # All pixels of image
+        time_start: float = time.monotonic()
         pixels: numpy.ndarray
         with Image.open(Path(self.coded_directory + self.name)) as image:
             pixels = numpy.array(image)
@@ -99,7 +104,9 @@ class Decode(image.CodeImage):
             for pixel in row:
                 if pixel[component] not in ascii_blacklist:
                     message += chr(pixel[component])
+        self.time_elapsed = time.monotonic() - time_start
         
+
         if not message:
             print("(~) - Message is empty.")
 
@@ -117,7 +124,7 @@ class Decode(image.CodeImage):
         try:
             with open(Path(self.decoded_directory + name + ".log"), "a") as file_save:
                 file_save.write(f"Decoding {self.decoded_directory + name}, on {datetime.datetime.now()}.\n")
-                file_save.write(f"Color component: {self.component}.\n")
+                file_save.write(f"Color component: {self.component}. Decipher time: {self.time_elapsed:.8f}s.\n")
                 if self.message and self.log_raw:
                     file_save.write("Raw: \n")
                     file_save.write(f"{self.message}\n")
@@ -130,7 +137,7 @@ class Decode(image.CodeImage):
                     file_save.write("No messsage.\n")
 
                 file_save.write("\nEND.\n\n")
-            print(f"(+) - Succesfully saved in `{self.decoded_directory + name}.log`.")
+            print(f"(+) - Succesfully saved in `{self.decoded_directory + name}.log`. Decoded in {self.time_elapsed:.4f}s.")
         except OSError:
             print(f"(!) - Couldn't log in `{self.decoded_directory + name}.log`.")
 

@@ -4,6 +4,7 @@ Handle, read and decode images
 
 from PIL import Image
 import numpy
+import time
 
 import modules.image as image
 import modules.binary as binary
@@ -85,6 +86,7 @@ class Encode(image.CodeImage):
 
         # Iterating over each pyxel.
         # About overflow: loop around.
+        time_start: float = time.monotonic()
         count: int = 0
         for x in range(size[0]):
             for y in range(size[1]):
@@ -94,6 +96,7 @@ class Encode(image.CodeImage):
                     color_bin[-1] = message_bit[count]
                     pixels[x, y, component] = binary.bin_to_int(color_bin)
                     count += 1 
+        self.time_elapsed = time.monotonic() - time_start
 
         # Generating the coded image.
         coded_image = Image.fromarray(pixels)
@@ -124,6 +127,7 @@ class Encode(image.CodeImage):
         # Message to bits (wipes character that are bigger than 255).
         message_int: numpy.ndarray = numpy.array([ord(letter) for letter in self.message if ord(letter) < 256])
 
+        time_start: float = time.monotonic()
         # Fill the 1D array to match the number of pixels needed for the square
         side: int = int(numpy.ceil(numpy.sqrt(len(message_int))))
         while len(message_int) < side ** 2:
@@ -142,6 +146,7 @@ class Encode(image.CodeImage):
         
         # 2D-ify
         square: numpy.ndarray = colors.reshape((side, side, components))
+        self.time_elapsed = time.monotonic() - time_start
 
         # Convert
         image_from_text: Image.Image = Image.fromarray(square)
@@ -164,7 +169,7 @@ class Encode(image.CodeImage):
 
             try:
                 self.coded_image.save(self.coded_directory + name)
-                print(f"(+) - Coded image succesfully saved in `{self.coded_directory + name}`.")
+                print(f"(+) - Coded image succesfully saved in `{self.coded_directory + name}`. Generated in {self.time_elapsed:.4f}s.")
             except OSError:
                 print(f"(!) - Could not save image in `{self.coded_directory + name}`.")
         else:

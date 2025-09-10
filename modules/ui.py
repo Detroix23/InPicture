@@ -34,7 +34,7 @@ class UiConsole(image.CodeImage):
         try:
             while self.is_running:
                 # Choosing side.
-                print("## Enter values. [allowed values] (default value). Ctrl+C to exit at any time.")
+                print("\n## Enter values. [allowed values] (default value). Ctrl+C to exit at any time.\n")
                 action_mode: str = UiConsole.verfied_input(
                     "- Choose an action, a mode [encode, en | decode, de](en): ",
                     self.symbol_mode,
@@ -128,7 +128,7 @@ class UiConsole(image.CodeImage):
         """
         print(f"*Files in `{directory}`.*")
         files: list[str] = os.listdir(directory)
-        
+
         for file in files:
             if file.lower() not in ["readme.md", "readme"]:
                 print(f"\t- {file}")

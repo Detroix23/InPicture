@@ -72,5 +72,5 @@ if __name__ == '__main__':
     d3.read_hidden_text()
     assert d3.message_clean == testUtils.TEXT_SHORT2
 
-    print("\n## User interface.\n")
+    print("\n## User interface.")
     ui.UiConsole()

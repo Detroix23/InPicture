@@ -15,3 +15,5 @@ class CodeImage:
         self.message: str = message
         self.component: int = component
         self.character_size: int = character_size
+
+        self.time_elapsed: float = 0
