@@ -52,11 +52,10 @@ class UiConsole(image.CodeImage):
                             self.symbol_component, 
                             default=0,
                         ))
-                        open_when_ready: bool = bool(UiConsole.verfied_input(
+                        open_when_ready: bool = UiConsole.boolean_input(
                             "- Open when ready [Yes/ No](Yes): ",
-                            self.symbol_bool,
-                            default=1
-                        ))
+                            default=True
+                        )
 
                         image_encode: encode.Encode = encode.Encode(
                             name,
@@ -69,11 +68,10 @@ class UiConsole(image.CodeImage):
                         image_encode.code_message_in()
 
                         if open_when_ready:
-                            save: bool = bool(UiConsole.verfied_input(
+                            save: bool = UiConsole.boolean_input(
                                 "- Save [Yes/ No](Yes): ",
-                                self.symbol_bool,
-                                default=1    
-                            ))
+                                default=True,
+                            )
                             if save:
                                 image_encode.save_image_coded()
                             else:
@@ -144,7 +142,8 @@ class UiConsole(image.CodeImage):
         true_response: str | None = None 
         i: int = 0
         while not valid and i < max_iterations:
-            response: str = input(message)
+            response: str = input(message).strip()
+
             if response == "" and default is None:
                 pass
             elif symbols is None:
@@ -178,5 +177,44 @@ class UiConsole(image.CodeImage):
         print(f"R: `{true_response}`")
         return true_response
 
-                
+    @staticmethod
+    def boolean_input(
+        message: str,
+        default: bool = True, 
+        error_message: str = "(!) - Incorrect input. Please try again.",
+        max_iterations: int = 10000,
+    ) -> bool:
+        """
+        A boolean (yes/ no) input sanitaizer that repeats until the user has entered a correct value.
+        `Default` is the value returned in case the user just presses Enter.
+        """
+        valid: bool = False
+        true_response: bool | None = None 
+        i: int = 0
+        symbols: dict[bool, list[str]] = {
+            False: ["No", "NO", "no", "n", "N"],
+            True: ["Yes", "YES", "yes", "ye", "y", "Y"]
+        }
+
+        while not valid and i < max_iterations:
+            response: str = input(message).strip()
+
+            if response == "":
+                true_response = default
+                valid = True
+            else:
+                for key, values in symbols.items():
+                    if response in values:
+                        true_response = key
+                        valid = True
+            if not valid:
+                print(f"{error_message}({response}). ", end="\n")
+            i += 1
+
+        if not valid or true_response is None:
+            raise ValueError(f"(X) - Can't return an invalid response.")
+        print(f"R: `{true_response}`")
+        return true_response
+
+      
 
