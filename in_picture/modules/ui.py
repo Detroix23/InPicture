@@ -46,81 +46,76 @@ class UiConsole(image.CodeImage):
                     self.symbol_mode,
                     default=0
                 )
-                match action_mode:
-                    case "en":
-                        print("### Encoding.")
-                        self.list_directory(self.origin_directory)
+                if action_mode == "en":
+                    print("### Encoding.")
+                    self.list_directory(self.origin_directory)
 
-                        name: str = UiConsole.verfied_input(
-                            "- Name of the file to be encoded [str]: ",
-                            symbols=list(os.listdir(self.coded_directory)),
-                            error_message="(!) - File not in directory.",
-                        )
-                        message: str = UiConsole.verfied_input("- Message [str]: ")
-                        color: int = int(UiConsole.verfied_input(
-                            "- Color component, RGB [0 | 1 | 2](0): ", 
-                            self.symbol_component, 
-                            default=0,
-                        ))
-                        open_when_ready: bool = UiConsole.boolean_input(
-                            "- Open when ready [Yes/ No](Yes): ",
-                            default=True
-                        )
+                    name: str = UiConsole.verfied_input(
+                        "- Name of the file to be encoded [str]: ",
+                        symbols=list(os.listdir(self.coded_directory)),
+                        error_message="(!) - File not in directory.",
+                    )
+                    message: str = UiConsole.verfied_input("- Message [str]: ")
+                    color: int = int(UiConsole.verfied_input(
+                        "- Color component, RGB [0 | 1 | 2](0): ", 
+                        self.symbol_component, 
+                        default=0,
+                    ))
+                    open_when_ready: bool = UiConsole.boolean_input(
+                        "- Open when ready [Yes/ No](Yes): ",
+                        default=True
+                    )
 
-                        image_encode: encode.Encode = encode.Encode(
-                            name,
-                            message,
-                            color,
-                            auto_save=False,
-                            open_when_ready=open_when_ready,
-                            print_array=self.debug
-                        )
-                        image_encode.code_message_in()
+                    image_encode: encode.Encode = encode.Encode(
+                        name,
+                        message,
+                        color,
+                        auto_save=False,
+                        open_when_ready=open_when_ready,
+                        print_array=self.debug
+                    )
+                    image_encode.code_message_in()
 
-                        if open_when_ready:
-                            save: bool = UiConsole.boolean_input(
-                                "- Save [Yes/ No](Yes): ",
-                                default=True,
-                            )
-                            if save:
-                                image_encode.save_image_coded()
-                            else:
-                                print("*Canceling.*")
-                        else:
+                    if open_when_ready:
+                        save: bool = UiConsole.boolean_input(
+                            "- Save [Yes/ No](Yes): ",
+                            default=True,
+                        )
+                        if save:
                             image_encode.save_image_coded()
+                        else:
+                            print("*Canceling.*")
+                    else:
+                        image_encode.save_image_coded()
 
+                elif action_mode == "de":
+                    print("### Decoding.")
+                    self.list_directory(self.coded_directory)
 
-                    case "de":
-                        print("### Decoding.")
-                        self.list_directory(self.coded_directory)
+                    name: str = UiConsole.verfied_input(
+                        "- Name of the file to decode [str]: ",
+                        symbols=list(os.listdir(self.coded_directory)),
+                        error_message="(!) - File not in directory.",
+                    )
+                    color: int = int(UiConsole.verfied_input(
+                        "- Color component RGB [0 | 1 | 2](0): ",
+                        self.symbol_component,
+                        default=0,
+                    ))
+                    character_size: int = 8
+                    open_when_ready: bool = True
+                    log_raw: bool = False
+                    save: bool = True
 
-                        name: str = UiConsole.verfied_input(
-                            "- Name of the file to decode [str]: ",
-                            symbols=list(os.listdir(self.coded_directory)),
-                            error_message="(!) - File not in directory.",
-                        )
-                        color: int = int(UiConsole.verfied_input(
-                            "- Color component RGB [0 | 1 | 2](0): ",
-                            self.symbol_component,
-                            default=0,
-                        ))
-                        character_size: int = 8
-                        open_when_ready: bool = True
-                        log_raw: bool = False
-                        save: bool = True
-
-                        image_decode: decode.Decode = decode.Decode(
-                            name,
-                            color,
-                            character_size,
-                            open_when_ready=open_when_ready,
-                            log_raw=log_raw,
-                            save=save,
-                        )
-                        image_decode.read_hidden_text()
-
-                    case _:
-                        print("(X) - Invalid mode.")
+                    image_decode: decode.Decode = decode.Decode(
+                        name,
+                        color,
+                        character_size,
+                        open_when_ready=open_when_ready,
+                        log_raw=log_raw,
+                        save=save,
+                    )
+                    image_decode.read_hidden_text()
                     
         except KeyboardInterrupt as exception:
             print(f"\n*Interrupted the main loop `{exception}`. Executing the UI.*\n")
