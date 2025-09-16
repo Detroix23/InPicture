@@ -9,6 +9,7 @@ import pathlib as path
 
 import modules.image as image
 import modules.binary as binary
+import modules.loadings as loadings
 
 # Bloated typing for decorator.
 from typing import Callable, ParamSpec
@@ -89,6 +90,13 @@ class Encode(image.CodeImage):
         # About overflow: loop around.
         time_start: float = time.monotonic()
         count: int = 0
+        # Loading bar
+        loading_bar: loadings.Bar = loadings.Bar(
+            "█",
+            f"Coding {self.name}",
+            pixels.size // 3,
+            true_size = 50,  
+        )
         for x in range(size[0]):
             for y in range(size[1]):
                 if count < len(message_bit):
@@ -97,6 +105,10 @@ class Encode(image.CodeImage):
                     color_bin[-1] = message_bit[count]
                     pixels[x, y, component] = binary.bin_to_int(color_bin)
                     count += 1 
+                if self.loading_widgets:
+                    loading_bar.increment()
+        print()
+
         self.time_elapsed = time.monotonic() - time_start
 
         # Generating the coded image.

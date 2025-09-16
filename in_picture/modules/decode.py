@@ -12,6 +12,7 @@ import time
 import modules.image as image
 import modules.binary as binary
 import modules.automaticOpen as autoOpen
+import modules.loadings as loadings
 
 # Bloated typing for decorator.
 from typing import Callable, ParamSpec
@@ -67,6 +68,14 @@ class Decode(image.CodeImage):
         with Image.open(image_path) as image:
             pixels = numpy.array(image)
 
+        # Loading bar
+        loading_bar: loadings.Bar = loadings.Bar(
+            "█",
+            f"Reading {self.name}",
+            pixels.size // 3,
+            true_size = 50,  
+        )
+
         # Get for each pixel the first bit of the color component.
         time_start: float = time.monotonic()
         for row in pixels:
@@ -74,6 +83,9 @@ class Decode(image.CodeImage):
                 first_bit: bool = binary.int_to_bin(pixel[self.component])[-1]
                 #print(first_bit, end=" ")
                 bits = numpy.append(bits, first_bit)
+                if self.loading_widgets:
+                    loading_bar.increment()
+        print()
 
         #print(f"Bin: {bits[0:48]}")
         # Get character chain
@@ -101,13 +113,24 @@ class Decode(image.CodeImage):
         with Image.open(image_path) as image:
             pixels = numpy.array(image)
 
+        # Loading bar
+        loading_bar: loadings.Bar = loadings.Bar(
+            "█",
+            f"Reading {self.name}",
+            pixels.size // 3,
+            true_size = 50,  
+        )
+
         message: str = ""
         for row in pixels:
             for pixel in row:
                 if pixel[component] not in ascii_blacklist:
                     message += chr(pixel[component])
-        self.time_elapsed = time.monotonic() - time_start
+                if self.loading_widgets:
+                    loading_bar.increment()
         
+        print()
+        self.time_elapsed = time.monotonic() - time_start
 
         if not message:
             print("(~) - Message is empty.")

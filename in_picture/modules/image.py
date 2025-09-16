@@ -17,4 +17,5 @@ class CodeImage:
         self.component: int = component
         self.character_size: int = character_size
 
+        self.loading_widgets: bool = True
         self.time_elapsed: float = 0

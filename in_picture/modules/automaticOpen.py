@@ -17,13 +17,13 @@ def open_text(file_path: path.Path) -> None:
     try:
         # macOS
         if system == 'Darwin':       
-            subprocess.call(('open', file_path))
+            subprocess.call(('open', file_path))        # type: ignore
         # Windows
         elif system == 'Windows':    
-            os.startfile(file_path) # type: ignore
-        # linux variants
+            os.startfile(file_path)                     # type: ignore
+        # Linux variants
         else:                                   
-            subprocess.call(('xdg-open', file_path))
+            subprocess.call(('xdg-open', file_path))    # type: ignore
     except OSError as exception:
         print(f"(!) - Can't automatically open the file. Path=`{file_path}`, System=`{system}`, Error=`{exception}`.")
 
