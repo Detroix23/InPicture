@@ -15,8 +15,8 @@ class UiConsole(image.CodeImage):
     Allow user to type in instructions in the command line. 
     """
     symbol_mode: dict[str, list[str]] = {
-        "en": ["en", "encode", "enc"],
-        "de": ["de", "decode", "dec"]
+        "1": ["1", "en", "encode", "enc"],
+        "2": ["2", "de", "decode", "dec"]
     }
     symbol_component: dict[str, list[str]] = {
         "0": ["R", "red", "0"], 
@@ -42,11 +42,11 @@ class UiConsole(image.CodeImage):
                 # Choosing side.
                 print("\n## Enter values. [allowed values] (default value). Ctrl+C to exit at any time.\n")
                 action_mode: str = UiConsole.verfied_input(
-                    "- Choose an action, a mode [encode, en | decode, de](en): ",
+                    "- Choose an action, a mode [\n\t1: encode, en \n\t2: decode, de\n](en): ",
                     self.symbol_mode,
                     default=0
                 )
-                if action_mode == "en":
+                if action_mode == "1":
                     print("### Encoding.")
                     self.list_directory(self.origin_directory)
 
@@ -88,7 +88,7 @@ class UiConsole(image.CodeImage):
                     else:
                         image_encode.save_image_coded()
 
-                elif action_mode == "de":
+                elif action_mode == "2":
                     print("### Decoding.")
                     self.list_directory(self.coded_directory)
 
@@ -116,7 +116,10 @@ class UiConsole(image.CodeImage):
                         save=save,
                     )
                     image_decode.read_hidden_text()
-                    
+                
+                else:
+                    print("(!) - Invalid mode.")
+
         except KeyboardInterrupt as exception:
             print(f"\n*Interrupted the main loop `{exception}`. Executing the UI.*\n")
         
