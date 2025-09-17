@@ -52,7 +52,7 @@ class UiConsole(image.CodeImage):
 
                     name: str = UiConsole.verfied_input(
                         "- Name of the file to be encoded [str]: ",
-                        symbols=list(os.listdir(self.coded_directory)),
+                        symbols=list(os.listdir(self.origin_directory)),
                         error_message="(!) - File not in directory.",
                     )
                     message: str = UiConsole.verfied_input("- Message [str]: ")
